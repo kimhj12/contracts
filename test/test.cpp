@@ -7,15 +7,16 @@ CONTRACT test: public contract {
         using contract::contract;
 
         ACTION hi(name user) {
-            address_index forallowance(get_self(), get_self().value);
-            auto itr = forallowance.find(user.value);
-            check(itr != forallowance.end(), "X");
+            address_index forhi(get_self(), get_self().value);
+            auto itr = forhi.require_find(user.value, "X");
+            check(itr != forhi.end(), "X");
             print("hello, ",user);
  
         }
 
         ACTION insert(name user){
             check(has_auth(get_self()),"x");
+            //require_auth(get_self());
 
             address_index forInsert(get_self(), get_self().value);
 
@@ -37,7 +38,7 @@ CONTRACT test: public contract {
              
              auto itr = forRemove.require_find(user.value, "no account");
              
-            forRemove.erase(itr);
+             forRemove.erase(itr);
             
             print("remove success");
             

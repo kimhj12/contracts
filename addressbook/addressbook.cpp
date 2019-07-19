@@ -8,7 +8,16 @@ CONTRACT addressbook: public contract {
 
         using contract::contract;
 
-        ACTION upsert(name user, std::string first_name, std::string last_name, uint32_t age) {
+        ACTION findage(uint64_t age) {
+            address_index addresses(get_self(), get_self().value);
+            auto forSecondary = addresses.get_index<"byage"_n>();
+
+            auto itr = forSecondary.require_find(age, "no age");
+
+            print(itr->user, " ", itr->age);
+        }
+
+        ACTION upsert(name user, uint64_t age) {
             require_auth(user);
 
             address_index forUpsert(get_self(), get_self().value);
@@ -19,8 +28,6 @@ CONTRACT addressbook: public contract {
             {
                 forUpsert.emplace(user, [&](auto& row) {
                     row.user = user;
-                    row.first_name = first_name;
-                    row.last_name = last_name;
                     row.age = age;
                     });
                     print("insert success");
@@ -28,8 +35,6 @@ CONTRACT addressbook: public contract {
             else {
                 forUpsert.modify(itr, user,[&](auto& row ) {
                     row.user = user;
-                    row.first_name = first_name;
-                    row.last_name = last_name;
                     row.age = age;
                 });
                 print("upsert success");
@@ -70,21 +75,14 @@ CONTRACT addressbook: public contract {
 // }
 
 
-    ACTION erase(name user) {
+        ACTION erase(name user) {   
+            require_auth(user);     
 
-        require_auth(user);
-
-
-        address_index forErase(get_self(), get_self().value);
-
-        auto itr = forErase.require_find(user.value, "no account");
-
-        forErase.erase(itr);
-
-
-        print("erase success");
-
-    }
+            address_index forErase(get_self(), get_self().value);  
+            auto itr = forErase.require_find(user.value, "no account");  
+            forErase.erase(itr);
+            print("erase success");
+        }
 
 
     private:
@@ -92,19 +90,16 @@ CONTRACT addressbook: public contract {
         struct [[eosio::table]] person {
 
         name user;
-
-        std::string first_name;
-
-        std::string last_name;
-
-        uint32_t age;
+        uint64_t age;
 
 
         uint64_t primary_key() const { return user.value; }
+        uint64_t by_age() const {return age;}
 
     };
 
 
-    typedef multi_index<"people"_n, person> address_index;
+    typedef multi_index<"peopletwo"_n, person,
+    indexed_by<"byage"_n, const_mem_fun<person, uint64_t, &person::by_age>> > address_index;
 
 };
