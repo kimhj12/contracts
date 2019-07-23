@@ -4,7 +4,7 @@
     "types": [],
     "structs": [
         {
-            "name": "book_struct",
+            "name": "scope_struct",
             "base": "",
             "fields": [
                 {
@@ -20,31 +20,20 @@
                     "type": "asset"
                 }
             ]
-        },
-        {
-            "name": "dummy",
-            "base": "",
-            "fields": []
         }
     ],
-    "actions": [
-        {
-            "name": "dummy",
-            "type": "dummy",
-            "ricardian_contract": ""
-        }
-    ],
+    "actions": [],
     "tables": [
         {
-            "name": "receiverbook",
-            "type": "book_struct",
+            "name": "scoperecv",
+            "type": "scope_struct",
             "index_type": "i64",
             "key_names": [],
             "key_types": []
         },
         {
-            "name": "senderbook",
-            "type": "book_struct",
+            "name": "scopesnd",
+            "type": "scope_struct",
             "index_type": "i64",
             "key_names": [],
             "key_types": []
