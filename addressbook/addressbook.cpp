@@ -29,50 +29,34 @@ CONTRACT addressbook: public contract {
                 forUpsert.emplace(user, [&](auto& row) {
                     row.user = user;
                     row.age = age;
-                    });
-                    print("insert success");
+                });
+                send_summary(user, " successfully emplaced record to addressbook");
             }
             else {
                 forUpsert.modify(itr, user,[&](auto& row ) {
                     row.user = user;
                     row.age = age;
                 });
-                print("upsert success");
+                send_summary(user, " successfully modified record to addressbook");
             }
             
 
         }
 
  
-//         ACTION insert(name user, std::string first_name, std::string last_name, uint32_t age) {
+        // ACTION insert(name user, uint64_t age) {
+        //     require_auth(user);
+        //     address_index forInsert(get_self(), get_self().value);
+        //     auto itr = forInsert.find(user.value);
 
-//         require_auth(user);
+        //     check(itr == forInsert.end(), "already exists");
 
-
-//         address_index forInsert(get_self(), get_self().value);
-
-//         auto itr = forInsert.find(user.value);
-
-
-//         check(itr == forInsert.end(), "already exists");
-
-
-//         forInsert.emplace(user, [&](auto& row) {
-
-//         row.user = user;
-
-//         row.first_name = first_name;
-
-//         row.last_name = last_name;
-
-//         row.age = age;
-
-//     });
-
-
-//     print("insert success");
-
-// }
+        //     forInsert.emplace(user, [&](auto& row){   
+        //         row.user = user;
+        //         row.age = age; 
+        //     });
+        //     print("insert success");
+        // }
 
 
         ACTION erase(name user) {   
@@ -81,7 +65,13 @@ CONTRACT addressbook: public contract {
             address_index forErase(get_self(), get_self().value);  
             auto itr = forErase.require_find(user.value, "no account");  
             forErase.erase(itr);
-            print("erase success");
+            send_summary(user, " successfully erased record from addressbook");
+        }
+
+        [[eosio::action]]
+        void notify(name user, std::string msg) {
+            require_auth(get_self());
+            require_recipient(user);
         }
 
 
@@ -99,7 +89,15 @@ CONTRACT addressbook: public contract {
     };
 
 
-    typedef multi_index<"peopletwo"_n, person,
-    indexed_by<"byage"_n, const_mem_fun<person, uint64_t, &person::by_age>> > address_index;
+    void send_summary(name user, std::string message) {
+        action(
+            permission_level{get_self(),"active"_n},
+            get_self(),
+            "notify"_n,
+            std::make_tuple(user, name{user}.to_string() + message)
+            ).send();
+        };
 
+
+    typedef multi_index<"peopletwo"_n, person, indexed_by<"byage"_n, const_mem_fun<person, uint64_t, &person::by_age>> > address_index;
 };
